@@ -90,16 +90,7 @@
       this.el.classList.add('dragimage');
     },
     hide: function () {
-      // if (this.el) {
-      //   imageDom.classList.remove('dragimage');
-      // }
 
-      // var imageDoms = document.querySelectorAll('img');
-      // if (imageDoms && imageDoms.length > 0) {
-      //   imageDoms.forEach(function (imageDom) {
-      //     imageDom.classList.remove('dragimage');
-      //   });
-      // }
     },
     isMovable: function (el) {
       if (el.className && el.className.indexOf('dragimage') >= 0) {
