@@ -6,7 +6,7 @@
  * - Escape while dragging cancels resize
  *
  */
-(function() {
+(function () {
   "use strict";
 
   var PLUGIN_NAME = 'moveimage';
@@ -16,12 +16,12 @@
    * Initializes the plugin
    */
   CKEDITOR.plugins.add(PLUGIN_NAME, {
-    onLoad: function() {
-      CKEDITOR.addCss('img.dragimage{position: relative;}');
+    onLoad: function () {
+      CKEDITOR.addCss('img.dragimage{position:relative;}');
     },
-    init: function(editor) {
+    init: function (editor) {
       //onDomReady handler
-      editor.on('contentDom', function(evt) {
+      editor.on('contentDom', function (evt) {
         init(editor);
       });
     }
@@ -33,14 +33,13 @@
 
     var mover = new Mover(editor);
 
-    document.addEventListener('mousedown', function(e) {
+    document.addEventListener('mousedown', function (e) {
       if (mover.isMovable(e.target)) {
         mover.startDrag(e);
       }
     }, false);
-
     document.addEventListener('mouseup', function (e) {
-      if (mover.isHandle(e.target)) {
+      if (mover.isMovable(e.target)) {
         mover.stopDrag(e);
       }
     }, false);
@@ -53,6 +52,21 @@
       // Remove the handles when editor loses focus
       mover.hide();
     });
+    editor.on('selectionChange', selectionChange);
+
+    function selectionChange() {
+      var selection = editor.getSelection();
+      if (!selection) return;
+      // If an element is selected and that element is an IMG
+      if (selection.getType() !== CKEDITOR.SELECTION_NONE && selection.getStartElement().is('img')) {
+        // And we're not right or middle clicking on the image
+        if (!window.event || !window.event.button || window.event.button === 0) {
+          mover.show(selection.getStartElement().$);
+        }
+      } else {
+        mover.hide();
+      }
+    }
   }
 
   function Mover(editor) {
@@ -63,30 +77,38 @@
   }
 
   Mover.prototype = {
-    init: function() {
+    init: function () {
       var imageDoms = document.querySelectorAll('img');
       if (imageDoms && imageDoms.length > 0) {
-        imageDoms.forEach(function (imageDom){
+        imageDoms.forEach(function (imageDom) {
           imageDom.classList.add('dragimage');
         });
       }
     },
-    hide: function() {
-      var imageDoms = document.querySelectorAll('img');
-      if (imageDoms && imageDoms.length > 0) {
-        imageDoms.forEach(function (imageDom) {
-          imageDom.classList.remove('dragimage');
-        });
-      }
+    show: function (el) {
+      this.el = el;
+      this.el.classList.add('dragimage');
     },
-    isMovable: function(el) {
-      if (el.className == 'dragimage') { 
+    hide: function () {
+      // if (this.el) {
+      //   imageDom.classList.remove('dragimage');
+      // }
+
+      // var imageDoms = document.querySelectorAll('img');
+      // if (imageDoms && imageDoms.length > 0) {
+      //   imageDoms.forEach(function (imageDom) {
+      //     imageDom.classList.remove('dragimage');
+      //   });
+      // }
+    },
+    isMovable: function (el) {
+      if (el.className && el.className.indexOf('dragimage') >= 0) {
         return true;
       } else {
         return false;
       }
     },
-    startDrag: function(e) {
+    startDrag: function (e) {
       this.targ = e.target;
 
       // calculate event X, Y coordinates
@@ -104,10 +126,10 @@
       this.drag = true;
 
       // move div element
-      this.document.onmousemove = this.dragImage;
+      this.document.onmousemove = this.dragImage.bind(this);
       return false;
     },
-    dragImage: function(e) {
+    dragImage: function (e) {
       if (!this.drag) { return };
       if (!e) { var e = this.window.event };
       // var targ=e.target?e.target:e.srcElement;
@@ -116,7 +138,7 @@
       this.targ.style.top = this.coordY + e.clientY - this.offsetY + 'px';
       return false;
     },
-    stopDrag: function(e) {
+    stopDrag: function (e) {
       this.drag = false;
     }
   };
